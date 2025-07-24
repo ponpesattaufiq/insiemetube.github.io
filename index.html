@@ -3,502 +3,995 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>INSIEME Tube</title>
-    <!-- Tailwind CSS CDN -->
+    <title>Fidai - Asisten Ide Kreatif AI</title>
+    <!-- Tailwind CSS CDN untuk styling yang mudah dan responsif -->
     <script src="https://cdn.tailwindcss.com"></script>
-    <!-- Google Fonts - Pacifico (untuk font imut) dan Inter (untuk teks umum yang bulat) -->
-    <link href="https://fonts.googleapis.com/css2?family=Pacifico&family=Inter:wght@400;600;700;800&display=swap" rel="stylesheet">
+    <!-- Font Inter untuk tampilan modern, akan ditimpa jika font lain dipilih -->
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;700&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Open+Sans:wght@400;700&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Lato:wght@400;700&display=swap" rel="stylesheet">
+    
+    <!-- Showdown.js untuk merender Markdown -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/showdown/2.1.0/showdown.min.js"></script>
     <style>
+        /* Mengatur font-family global ke Inter sebagai default */
         body {
-            font-family: 'Inter', sans-serif; /* Font umum yang lebih bulat */
-            background-color: #000000; /* Dominan Hitam */
-            color: #ffffff; /* Dominan Putih */
-            overflow-x: hidden; /* Mencegah scroll horizontal */
+            font-family: 'Inter', sans-serif;
+            font-size: 1rem; /* Ukuran font default */
         }
-        .container {
-            max-width: 1200px;
-            margin: 0 auto;
-            padding: 1rem;
+        /* Desain latar belakang utama aplikasi agar gelap */
+        body {
+            background-color: #202123; /* Lebih mendekati warna latar belakang dari screenshot */
+            color: #e2e8f0; /* Warna teks default terang */
+            overflow: hidden; /* Mencegah scroll di body */
         }
-        /* Font khusus untuk judul aplikasi agar lebih imut */
-        #appTitle {
-            font-family: 'Pacifico', cursive;
-            text-shadow: 2px 2px 4px rgba(0,0,0,0.5); /* Sedikit bayangan untuk pop-out */
+        /* Mode terang */
+        body.light-mode {
+            background-color: #f0f2f5; /* Latar belakang terang */
+            color: #1a202c; /* Teks gelap */
+        }
+        body.light-mode .bg-gray-900 { /* Sidebar */
+            background-color: #ffffff;
+            border-color: #e2e8f0;
+            color: #2d3748;
+        }
+        body.light-mode .bg-gray-800 { /* Main content area */
+            background-color: #f7fafc;
+        }
+        body.light-mode .bg-blue-700 { /* User message bubble */
+            background-color: #3182ce;
+            color: #ffffff;
+        }
+        body.light-mode .bg-gray-700 { /* AI message bubble, input, search, settings card */
+            background-color: #edf2f7;
+            color: #4a5568;
+            border-color: #cbd5e0;
+        }
+        body.light-mode .bg-emerald-600 { /* Primary buttons, active filter */
+            background-color: #38a169;
+        }
+        body.light-mode .bg-emerald-700:hover { /* Primary buttons hover */
+            background-color: #2f855a;
+        }
+        body.light-mode .text-gray-300 { /* Light mode sidebar text, etc */
+            color: #4a5568;
+        }
+        body.light-mode .text-gray-400 { /* Light mode secondary text */
+            color: #718096;
+        }
+        body.light-mode .text-gray-500 { /* Light mode footer text */
+            color: #a0aec0;
+        }
+        body.light-mode .text-gray-600 { /* Input borders */
+            border-color: #a0aec0;
+        }
+        body.light-mode .text-emerald-400 { /* Fidai title, active link */
+            color: #38a169;
+        }
+        body.light-mode .hover\\:bg-gray-700:hover { /* Sidebar link hover */
+            background-color: #e2e8f0;
+        }
+        body.light-mode .message-bubble hr {
+            border-top-color: #cbd5e0;
         }
 
-        /* Efek hover dan transisi untuk thumbnail video */
-        .video-thumbnail {
-            cursor: pointer;
-            transition: transform 0.3s ease-in-out, box-shadow 0.3s ease-in-out;
-            border-radius: 1rem; /* Sudut lebih bulat */
-            overflow: hidden; /* Pastikan konten tidak meluber dari sudut bulat */
-            position: relative;
-            background-color: #1a1a1a; /* Sedikit lebih terang dari hitam murni */
+        /* Warna teks gradien yang sudah ada, cocok untuk tema gelap */
+        .text-gradient-purple-blue {
+            background-image: linear-gradient(to right, #8b5cf6, #3b82f6);
+            -webkit-background-clip: text;
+            background-clip: text;
+            color: transparent;
         }
-        .video-thumbnail:hover {
-            transform: translateY(-8px) scale(1.02); /* Efek naik dan sedikit membesar */
-            box-shadow: 0 10px 20px rgba(56, 189, 248, 0.4); /* Bayangan biru muda saat hover */
+        /* Styling untuk scrollbar */
+        .scrollbar-thin::-webkit-scrollbar {
+            width: 8px;
         }
-        .video-thumbnail::before {
-            content: '';
-            position: absolute;
-            top: 0;
-            left: 0;
-            right: 0;
-            bottom: 0;
-            background: linear-gradient(to bottom, rgba(0,0,0,0) 50%, rgba(0,0,0,0.6) 100%);
+        .scrollbar-thin::-webkit-scrollbar-track {
+            background: #2d3748; /* Warna track scrollbar */
+            border-radius: 10px;
+        }
+        .scrollbar-thin::-webkit-scrollbar-thumb {
+            background: #4a5568; /* Warna thumb scrollbar */
+            border-radius: 10px;
+        }
+        .scrollbar-thin::-webkit-scrollbar-thumb:hover {
+            background: #5a657a; /* Warna thumb scrollbar saat hover */
+        }
+        /* Styling tambahan untuk horizontal rule yang dihasilkan Showdown */
+        .message-bubble hr {
+            border: none;
+            border-top: 1px solid #4a5568; /* Warna abu-abu yang lebih terang dari latar belakang */
+            margin: 1.5rem 0; /* Spasi di atas dan bawah garis */
+        }
+        /* Gaya untuk tombol interaksi di bawah pesan AI */
+        .ai-actions {
             opacity: 0;
             transition: opacity 0.3s ease-in-out;
+            height: 0;
+            overflow: hidden;
         }
-        .video-thumbnail:hover::before {
+        .ai-actions.visible {
             opacity: 1;
+            height: auto;
+            overflow: visible;
         }
-
-        /* Custom modal styles for messages */
-        .modal {
-            display: none; /* Hidden by default */
-            position: fixed; /* Stay in place */
-            z-index: 1000; /* Sit on top */
-            left: 0;
-            top: 0;
-            width: 100%; /* Full width */
-            height: 100%; /* Full height */
-            overflow: auto; /* Enable scroll if needed */
-            background-color: rgba(0,0,0,0.8); /* Hitam dengan opacity */
-            justify-content: center;
-            align-items: center;
-            opacity: 0;
-            transition: opacity 0.3s ease-in-out;
+        .ai-actions button {
+            @apply p-1 rounded-full hover:bg-gray-600 transition-colors text-gray-400;
         }
-        .modal.show {
-            display: flex;
-            opacity: 1;
-        }
-        .modal-content {
-            background-color: #1f2937; /* Abu-abu gelap */
-            padding: 30px;
-            border-radius: 1.5rem; /* Sudut sangat bulat */
-            width: 90%;
-            max-width: 500px;
-            box-shadow: 0 8px 16px rgba(0, 0, 0, 0.4);
-            text-align: center;
-            transform: translateY(-20px);
-            transition: transform 0.3s ease-in-out;
-            border: 2px solid #38bdf8; /* Border biru muda */
-        }
-        .modal.show .modal-content {
-            transform: translateY(0);
-        }
-        .close-button {
-            color: #38bdf8; /* Warna biru muda */
-            float: right;
-            font-size: 32px;
-            font-weight: bold;
-            cursor: pointer;
-            transition: color 0.2s ease-in-out;
-        }
-        .close-button:hover,
-        .close-button:focus {
-            color: #a0aec0; /* Abu-abu terang saat hover */
-            text-decoration: none;
-            cursor: pointer;
-        }
-        .loading-spinner {
-            border: 4px solid rgba(255, 255, 255, 0.3); /* Putih transparan */
-            border-top: 4px solid #38bdf8; /* Biru muda */
-            border-radius: 50%;
-            width: 50px;
-            height: 50px;
-            animation: spin 1s linear infinite;
-            display: none; /* Hidden by default */
-            margin: 30px auto;
-        }
-        @keyframes spin {
-            0% { transform: rotate(0deg); }
-            100% { transform: rotate(360deg); }
-        }
-
-        /* Animasi untuk tombol */
-        .animated-button {
-            transition: all 0.3s ease-in-out;
-            border: 2px solid transparent;
-            border-radius: 1rem; /* Lebih bulat */
-        }
-        .animated-button:hover {
-            transform: translateY(-3px);
-            box-shadow: 0 5px 15px rgba(56, 189, 248, 0.4); /* Bayangan biru muda */
-            border-color: #38bdf8; /* Border biru muda saat hover */
-        }
-        .animated-button:active {
-            transform: translateY(0);
-            box-shadow: none;
-        }
-
-        /* Animasi untuk input */
-        .animated-input {
-            transition: all 0.3s ease-in-out;
-            border: 2px solid #374151; /* Abu-abu gelap */
-            border-radius: 1rem; /* Lebih bulat */
-        }
-        .animated-input:focus {
-            border-color: #38bdf8; /* Biru muda saat fokus */
-            box-shadow: 0 0 0 3px rgba(56, 189, 248, 0.3); /* Glow biru muda */
-        }
-        .nav-button {
-            @apply bg-gray-700 hover:bg-sky-600 text-white font-bold py-2 px-4 rounded-lg transition duration-300;
-        }
-        .nav-button.active {
-            @apply bg-sky-600;
-        }
-        /* Loading spinner for AI summary button */
-        .summary-loading-spinner {
-            border: 3px solid rgba(255, 255, 255, 0.3);
-            border-top: 3px solid #38bdf8;
-            border-radius: 50%;
-            width: 20px;
-            height: 20px;
-            animation: spin 1s linear infinite;
-            display: inline-block;
-            vertical-align: middle;
-            margin-left: 8px;
+        .ai-actions button svg {
+            @apply w-5 h-5;
         }
     </style>
 </head>
-<body class="bg-black text-white min-h-screen flex flex-col">
-    <header class="bg-gray-800 p-4 shadow-lg"> <!-- Abu-abu gelap untuk Header -->
-        <div class="container flex flex-col sm:flex-row justify-between items-center">
-            <h1 id="appTitle" class="text-4xl font-extrabold text-sky-400 mb-4 sm:mb-0 tracking-wide">INSIEME Tube</h1>
-            <div class="flex w-full sm:w-auto">
-                <input type="text" id="searchInput" placeholder="Cari video..."
-                       class="flex-grow p-3 rounded-l-xl bg-gray-700 animated-input focus:outline-none text-white placeholder-gray-400">
-                <button id="searchButton"
-                        class="bg-sky-600 hover:bg-sky-700 text-white font-bold py-3 px-6 rounded-r-xl animated-button">
-                    Cari
+<body class="min-h-screen flex flex-col items-center justify-center">
+
+    <!-- Main AI Application Section: Bagian aplikasi utama, kini langsung ditampilkan -->
+    <div id="appSection" class="w-full h-screen flex"> 
+        <!-- Sidebar Kiri -->
+        <div class="flex-shrink-0 w-64 bg-gray-900 border-r border-gray-700 flex flex-col p-4 text-gray-300">
+            <!-- Header Sidebar -->
+            <div class="flex items-center justify-between pb-4 border-b border-gray-700 mb-4">
+                <span class="text-2xl font-bold text-emerald-400">Fidai</span>
+                <!-- Contoh tombol aksi di header sidebar, mirip "Dapatkan Plus" -->
+                <button class="px-3 py-1 bg-purple-600 text-white text-sm font-semibold rounded-md hover:bg-purple-700 transition-colors">
+                    Dapatkan Plus
                 </button>
             </div>
-        </div>
-        <!-- Navigation Buttons -->
-        <nav class="container mt-4 flex justify-center space-x-4">
-            <button id="homeButton" class="nav-button active">Beranda</button>
-            <button id="popularButton" class="nav-button">Populer</button>
-            <button id="shortsButton" class="nav-button">Shorts</button> <!-- Tombol Shorts baru -->
-        </nav>
-    </header>
 
-    <main class="container flex-grow py-8">
-        <section id="videoPlayerSection" class="mb-8 bg-gray-800 rounded-2xl shadow-xl p-6 hidden border-2 border-sky-400"> <!-- Abu-abu gelap & Border Biru Muda -->
-            <h2 id="videoTitle" class="text-3xl font-bold mb-4 text-sky-400"></h2> <!-- Judul Biru Muda -->
-            <div class="relative rounded-lg overflow-hidden" style="padding-bottom: 56.25%;"> <!-- 16:9 Aspect Ratio -->
-                <iframe id="youtubePlayer" class="absolute top-0 left-0 w-full h-full rounded-lg"
-                        src="" frameborder="0" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
-                        allowfullscreen></iframe>
+            <!-- Navigasi Utama Sidebar -->
+            <nav class="flex flex-col space-y-2 flex-grow">
+                <a href="#" id="newChatButton" class="flex items-center space-x-2 px-3 py-2 rounded-lg hover:bg-gray-700 transition-colors">
+                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"></path></svg>
+                    <span>Obrolan baru</span>
+                </a>
+                <!-- Link untuk fitur utama kita, Hasilkan Ide -->
+                <a href="#main-chat-area" id="generateIdeaLink" class="flex items-center space-x-2 px-3 py-2 rounded-lg hover:bg-gray-700 transition-colors">
+                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z"></path></svg>
+                    <span>Hasilkan Ide</span>
+                </a>
+                <!-- Link baru untuk Fidtube -->
+                <a href="#" id="fidtubeLink" class="flex items-center space-x-2 px-3 py-2 rounded-lg hover:bg-gray-700 transition-colors">
+                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15.75 10.5l4.72-4.72a.75.75 0 011.28.53v11.38a.75.75 0 01-1.28.53l-4.72-4.72M4.5 18.75h9.75a2.25 2.25 0 002.25-2.25V5.25A2.25 2.25 0 0014.25 3H4.5A2.25 2.25 0 002.25 5.25v11.25A2.25 2.25 0 004.5 18.75z"></path></svg>
+                    <span>Fidtube</span>
+                </a>
+                <!-- Bagian "Obrolan" tanpa item spesifik -->
+                <div class="pt-4 mt-4 border-t border-gray-700">
+                    <h3 class="text-sm font-semibold text-gray-500 mb-2">Obrolan</h3>
+                    <!-- Item-item obrolan spesifik telah dihapus di sini -->
+                </div>
+            </nav>
+
+            <!-- Bagian Bawah Sidebar (Info User/Settings) -->
+            <div class="mt-auto pt-4 border-t border-gray-700">
+                <a href="#" id="settingsLink" class="flex items-center space-x-2 px-3 py-2 rounded-lg hover:bg-gray-700 transition-colors mt-1">
+                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z"></path><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"></path></svg>
+                    <span>Pengaturan</span>
+                </a>
             </div>
-            <p id="videoDescription" class="mt-5 text-gray-300 leading-relaxed text-lg"></p>
-            <div class="flex flex-wrap gap-4 mt-4">
-                <button id="summarizeButton"
-                        class="bg-sky-600 hover:bg-sky-700 text-white font-bold py-2 px-4 rounded-lg animated-button flex items-center justify-center">
-                    Ringkas Video ✨
-                    <span id="summaryLoadingSpinner" class="summary-loading-spinner hidden"></span>
+        </div>
+
+        <!-- Area Utama Konten (Chat Interface, Fidtube & Settings) -->
+        <main id="mainContentArea" class="flex-grow bg-gray-800 flex flex-col items-center justify-between p-6 overflow-hidden">
+            <!-- Chat history container -->
+            <div id="chatInterface" class="flex flex-col flex-grow w-full max-w-3xl overflow-y-auto scrollbar-thin pb-4">
+                <!-- Initial AI message with identity -->
+                <!-- Pesan awal ini akan dihasilkan oleh JS dengan efek mengetik -->
+            </div>
+
+            <!-- Input Area untuk Chat -->
+            <div id="chatInputArea" class="w-full max-w-2xl relative mt-4">
+                <textarea id="ideaInput" class="w-full p-4 pr-16 bg-gray-700 text-gray-200 rounded-lg border border-gray-600 focus:ring-emerald-500 focus:border-emerald-500 focus:outline-none resize-none overflow-hidden" rows="1" placeholder="Tanyakan apa saja"></textarea>
+                <button id="generateButton" class="absolute right-3 bottom-3 p-2 bg-emerald-600 text-white rounded-lg hover:bg-emerald-700 transition-colors">
+                    <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 12h14m-7-7l7 7-7 7"></path></svg>
                 </button>
-                <button id="shareButton"
-                        class="bg-gray-700 hover:bg-sky-600 text-white font-bold py-2 px-4 rounded-lg animated-button flex items-center justify-center">
-                    Bagikan Tautan 🔗
+                <!-- Tombol stop -->
+                <button id="stopButton" class="absolute right-3 bottom-3 p-2 bg-red-600 text-white rounded-lg hover:bg-red-700 transition-colors hidden">
+                    <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 12H3"></path></svg>
                 </button>
             </div>
-        </section>
 
-        <h2 id="currentCategoryTitle" class="text-3xl font-bold mb-6 text-sky-400">Video Terbaru</h2>
-        <div id="loadingSpinner" class="loading-spinner"></div>
-        <div id="videoResults" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-8">
-            <!-- Video results will be loaded here -->
-        </div>
-    </main>
+            <!-- Fidtube Section -->
+            <div id="fidtubeSection" class="hidden flex-col flex-grow w-full max-w-5xl overflow-y-auto scrollbar-thin">
+                <!-- Filter Buttons for Fidtube -->
+                <div class="flex justify-center space-x-4 mb-6">
+                    <button id="fidtubeFilterHome" class="px-5 py-2 rounded-lg font-semibold bg-emerald-600 text-white hover:bg-emerald-700 transition-colors">
+                        Beranda
+                    </button>
+                    <button id="fidtubeFilterShorts" class="px-5 py-2 rounded-lg font-semibold bg-gray-700 text-gray-300 hover:bg-gray-600 transition-colors">
+                        Shorts
+                    </button>
+                </div>
 
-    <footer class="bg-gray-800 p-6 text-center text-gray-400 mt-auto shadow-inner"> <!-- Abu-abu gelap untuk Footer -->
-        &copy; 2025 INSIEME Tube.
-    </footer>
+                <div class="w-full max-w-xl mx-auto flex space-x-2 mb-6">
+                    <input type="text" id="fidtubeSearchInput" placeholder="Cari video YouTube..." class="flex-grow p-3 bg-gray-700 text-gray-200 rounded-lg border border-gray-600 focus:ring-emerald-500 focus:border-emerald-500 focus:outline-none">
+                    <button id="fidtubeSearchButton" class="p-3 bg-emerald-600 text-white rounded-lg hover:bg-emerald-700 transition-colors">
+                        <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"></path></svg>
+                    </button>
+                </div>
+                <div id="youtubePlayer" class="w-full aspect-video bg-gray-900 rounded-lg mb-6 hidden mx-auto max-w-3xl"></div>
+                <div id="youtubeResults" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 w-full">
+                    <!-- Video results will be loaded here -->
+                </div>
+                <div id="fidtubeLoading" class="hidden text-gray-400 text-center mt-4">
+                    Memuat video...
+                </div>
+                <div id="fidtubeError" class="hidden text-red-400 text-center mt-4">
+                    Terjadi kesalahan saat mencari video.
+                </div>
+            </div>
 
-    <!-- Custom Message Modal -->
-    <div id="messageModal" class="modal">
-        <div class="modal-content">
-            <span class="close-button">&times;</span>
-            <h3 id="modalTitle" class="text-2xl font-bold mb-4 text-sky-400"></h3>
-            <p id="modalMessage" class="text-xl font-semibold text-white"></p>
-            <button onclick="document.getElementById('messageModal').classList.remove('show');"
-                    class="mt-6 bg-sky-600 hover:bg-sky-700 text-white font-bold py-2 px-5 rounded-lg animated-button">
-                Oke
-            </button>
-        </div>
+            <!-- Settings Section -->
+            <div id="settingsSection" class="hidden flex-col flex-grow w-full max-w-3xl overflow-y-auto scrollbar-thin p-4">
+                <h2 class="text-2xl font-bold text-gray-100 mb-6">Pengaturan</h2>
+                
+                <div class="bg-gray-700 p-6 rounded-lg shadow-md mb-6">
+                    <h3 class="text-xl font-semibold text-gray-100 mb-4">Pengaturan Akun</h3>
+                    <div class="space-y-4">
+                        <div>
+                            <label for="username" class="block text-gray-300 text-sm font-bold mb-2">Nama Pengguna:</label>
+                            <input type="text" id="username" class="shadow appearance-none border border-gray-600 rounded w-full py-2 px-3 bg-gray-600 text-gray-200 leading-tight focus:outline-none focus:shadow-outline focus:border-emerald-500" value="khafid">
+                        </div>
+                        <div>
+                            <label for="email" class="block text-gray-300 text-sm font-bold mb-2">Email:</label>
+                            <input type="email" id="email" class="shadow appearance-none border border-gray-600 rounded w-full py-2 px-3 bg-gray-600 text-gray-200 leading-tight focus:outline-none focus:shadow-outline focus:border-emerald-500" value="fidseen@example.com">
+                        </div>
+                        <button class="bg-emerald-600 hover:bg-emerald-700 text-white font-bold py-2 px-4 rounded focus:outline-none focus:shadow-outline transition-colors">
+                            Simpan Perubahan
+                        </button>
+                    </div>
+                </div>
+
+                <div class="bg-gray-700 p-6 rounded-lg shadow-md mb-6">
+                    <h3 class="text-xl font-semibold text-gray-100 mb-4">Preferensi Tampilan</h3>
+                    <div class="space-y-4">
+                        <div>
+                            <label for="themeSelect" class="block text-gray-300 text-sm font-bold mb-2">Tema:</label>
+                            <select id="themeSelect" class="shadow border border-gray-600 rounded w-full py-2 px-3 bg-gray-600 text-gray-200 leading-tight focus:outline-none focus:shadow-outline focus:border-emerald-500">
+                                <option value="dark">Gelap</option>
+                                <option value="light">Terang</option>
+                            </select>
+                        </div>
+                        <div>
+                            <label for="fontSelect" class="block text-gray-300 text-sm font-bold mb-2">Font:</label>
+                            <select id="fontSelect" class="shadow border border-gray-600 rounded w-full py-2 px-3 bg-gray-600 text-gray-200 leading-tight focus:outline-none focus:shadow-outline focus:border-emerald-500">
+                                <option value="Inter">Inter</option>
+                                <option value="Roboto">Roboto</option>
+                                <option value="Open Sans">Open Sans</option>
+                                <option value="Lato">Lato</option>
+                            </select>
+                        </div>
+                        <div>
+                            <label for="fontSizeSelect" class="block text-gray-300 text-sm font-bold mb-2">Ukuran Font:</label>
+                            <select id="fontSizeSelect" class="shadow border border-gray-600 rounded w-full py-2 px-3 bg-gray-600 text-gray-200 leading-tight focus:outline-none focus:shadow-outline focus:border-emerald-500">
+                                <option value="0.875rem">Kecil (14px)</option>
+                                <option value="1rem" selected>Normal (16px)</option>
+                                <option value="1.125rem">Besar (18px)</option>
+                                <option value="1.25rem">Ekstra Besar (20px)</option>
+                            </select>
+                        </div>
+                        <div>
+                            <label for="languageSelect" class="block text-gray-300 text-sm font-bold mb-2">Bahasa Default:</label>
+                            <select id="languageSelect" class="shadow border border-gray-600 rounded w-full py-2 px-3 bg-gray-600 text-gray-200 leading-tight focus:outline-none focus:shadow-outline focus:border-emerald-500">
+                                <option value="id">Bahasa Indonesia</option>
+                                <option value="en">English (US)</option>
+                                <!-- Tambahkan bahasa lain jika diperlukan -->
+                            </select>
+                        </div>
+                        <button id="applyDisplaySettings" class="bg-emerald-600 hover:bg-emerald-700 text-white font-bold py-2 px-4 rounded focus:outline-none focus:shadow-outline transition-colors">
+                            Terapkan Pengaturan Tampilan
+                        </button>
+                    </div>
+                </div>
+
+                <div class="bg-gray-700 p-6 rounded-lg shadow-md">
+                    <h3 class="text-xl font-semibold text-gray-100 mb-4">Pengaturan AI</h3>
+                    <div class="space-y-4">
+                        <p class="text-gray-300">Mengatur ulang riwayat percakapan Anda dengan AI.</p>
+                        <button id="resetAiSettingsButton" class="bg-blue-600 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded focus:outline-none focus:shadow-outline transition-colors">
+                            Reset Pengaturan AI
+                        </button>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Footer chat, mirip dengan yang ada di ChatGPT -->
+            <div class="text-xs text-gray-500 mt-2">
+                Fidai dapat membuat kesalahan. Pertimbangkan untuk memverifikasi informasi penting.
+            </div>
+        </main>
     </div>
 
+    <!-- YouTube IFrame Player API Script -->
+    <script src="https://www.youtube.com/iframe_api"></script>
+
     <script>
-        // *** PENTING: KEAMANAN KUNCI API ***
-        // Menyimpan kunci API langsung di kode JavaScript front-end (seperti ini) SANGAT TIDAK AMAN.
-        // Kunci API Anda akan terlihat oleh siapa saja yang melihat kode sumber situs Anda.
-        // Untuk proyek nyata, Anda HARUS menggunakan server proxy atau fungsi tanpa server
-        // (misalnya, Netlify Functions, Vercel Serverless Functions, Google Cloud Functions)
-        // untuk menyembunyikan kunci API Anda. Permintaan ke YouTube API harus dilakukan dari backend Anda.
-        const YOUTUBE_API_KEY = 'AIzaSyDVlgvK3tAcb0Gl3bL9jE8FipmNEDlEr0w'; // Kunci API YouTube Anda telah disisipkan di sini.
+        // Mendapatkan referensi elemen-elemen DOM
+        const appSection = document.getElementById('appSection');
+        const newChatButton = document.getElementById('newChatButton');
+        const generateIdeaLink = document.getElementById('generateIdeaLink');
+        const fidtubeLink = document.getElementById('fidtubeLink');
+        const settingsLink = document.getElementById('settingsLink'); 
 
-        const searchInput = document.getElementById('searchInput');
-        const searchButton = document.getElementById('searchButton');
-        const videoResults = document.getElementById('videoResults');
-        const youtubePlayer = document.getElementById('youtubePlayer');
-        const videoPlayerSection = document.getElementById('videoPlayerSection');
-        const videoTitle = document.getElementById('videoTitle');
-        const videoDescription = document.getElementById('videoDescription');
-        const loadingSpinner = document.getElementById('loadingSpinner');
-        const homeButton = document.getElementById('homeButton');
-        const popularButton = document.getElementById('popularButton');
-        const shortsButton = document.getElementById('shortsButton'); // New: Shorts Button
-        const currentCategoryTitle = document.getElementById('currentCategoryTitle');
-        const summarizeButton = document.getElementById('summarizeButton');
-        const summaryLoadingSpinner = document.getElementById('summaryLoadingSpinner');
-        const shareButton = document.getElementById('shareButton');
+        const chatInterface = document.getElementById('chatInterface');
+        const chatInputArea = document.getElementById('chatInputArea');
+        const chatHistoryContainer = document.getElementById('chatInterface'); 
+
+        const ideaInput = document.getElementById('ideaInput');
+        const generateButton = document.getElementById('generateButton');
+        const stopButton = document.getElementById('stopButton'); 
+
+        const fidtubeSection = document.getElementById('fidtubeSection');
+        const fidtubeSearchInput = document.getElementById('fidtubeSearchInput');
+        const fidtubeSearchButton = document.getElementById('fidtubeSearchButton');
+        const youtubeResults = document.getElementById('youtubeResults');
+        const youtubePlayerDiv = document.getElementById('youtubePlayer'); 
+        const fidtubeLoading = document.getElementById('fidtubeLoading');
+        const fidtubeError = document.getElementById('fidtubeError');
+
+        const settingsSection = document.getElementById('settingsSection'); 
+        const themeSelect = document.getElementById('themeSelect');
+        const fontSelect = document.getElementById('fontSelect');
+        const fontSizeSelect = document.getElementById('fontSizeSelect');
+        const languageSelect = document.getElementById('languageSelect');
+        const applyDisplaySettingsButton = document.getElementById('applyDisplaySettings');
+        const resetAiSettingsButton = document.getElementById('resetAiSettingsButton'); // Referensi tombol reset AI
 
 
-        // Modal elements
-        const messageModal = document.getElementById('messageModal');
-        const modalTitle = document.getElementById('modalTitle');
-        const modalMessage = document.getElementById('modalMessage');
-        const closeButton = document.querySelector('.close-button');
+        // Filter Buttons for Fidtube
+        const fidtubeFilterHome = document.getElementById('fidtubeFilterHome');
+        const fidtubeFilterShorts = document.getElementById('fidtubeFilterShorts');
 
-        // Function to show custom message modal
-        function showMessage(message, title = "Pesan") {
-            modalTitle.textContent = title;
-            modalMessage.textContent = message;
-            messageModal.classList.add('show'); // Add 'show' class for animation
-        }
+        // Mengatur tinggi textarea agar otomatis menyesuaikan konten
+        ideaInput.addEventListener('input', () => {
+            ideaInput.style.height = 'auto';
+            ideaInput.style.height = (ideaInput.scrollHeight) + 'px';
+        });
 
-        // Function to close custom message modal
-        closeButton.onclick = function() {
-            messageModal.classList.remove('show');
-        }
+        // Inisialisasi Showdown Converter
+        const converter = new showdown.Converter();
 
-        // Close modal if user clicks outside of it
-        window.onclick = function(event) {
-            if (event.target == messageModal) {
-                messageModal.classList.remove('show');
-            }
-        }
+        // Variabel untuk AbortController
+        let currentAbortController = null;
+        // Global variable for typing timer
+        let typingTimeout;
+        // Global reference to the thinking message element
+        let thinkingMessageElement = null;
 
-        // Function to fetch videos from YouTube Data API
-        async function fetchVideos(query = 'trending', maxResults = 20, videoDuration = null) {
-            if (!YOUTUBE_API_KEY) {
-                showMessage("Kunci API YouTube belum diatur. Harap pastikan kunci API Anda benar.", "Kesalahan API");
-                return;
-            }
 
-            loadingSpinner.style.display = 'block'; // Show spinner
-            videoResults.innerHTML = ''; // Clear previous results
-            videoPlayerSection.classList.add('hidden'); // Hide player when new videos are fetched
+        // Fungsi untuk menambahkan pesan ke histori chat
+        function addMessageToChat(sender, message, isTyping = false, originalUserPrompt = '') {
+            const messageDiv = document.createElement('div');
+            messageDiv.classList.add('flex', 'items-start', 'mb-4');
 
-            let url;
-            if (query === 'trending') {
-                // Fetch trending videos (popular videos)
-                url = `https://www.googleapis.com/youtube/v3/videos?part=snippet,contentDetails,statistics&chart=mostPopular&regionCode=ID&maxResults=${maxResults}&key=${YOUTUBE_API_KEY}`;
-                currentCategoryTitle.textContent = 'Video Terbaru'; // Update title for Home/Popular
-            } else if (query === 'shorts') {
-                // Search for short videos (simulating YouTube Shorts)
-                // YouTube API's videoDuration 'short' means < 4 minutes.
-                url = `https://www.googleapis.com/youtube/v3/search?part=snippet&q=shorts&type=video&videoDuration=short&maxResults=${maxResults}&key=${YOUTUBE_API_KEY}`;
-                currentCategoryTitle.textContent = 'Video Shorts'; // Update title for Shorts
-            }
-            else {
-                // Search for videos
-                url = `https://www.googleapis.com/youtube/v3/search?part=snippet&q=${encodeURIComponent(query)}&type=video&maxResults=${maxResults}&key=${YOUTUBE_API_KEY}`;
-                currentCategoryTitle.textContent = `Hasil Pencarian untuk "${query}"`; // Update title for search
-            }
+            const avatarDiv = document.createElement('div');
+            avatarDiv.classList.add('flex-shrink-0', 'w-8', 'h-8', 'rounded-full', 'flex', 'items-center', 'justify-center', 'font-bold', 'text-sm', 'mr-3');
 
-            try {
-                const response = await fetch(url);
-                if (!response.ok) {
-                    const errorData = await response.json();
-                    throw new Error(errorData.error.message || `HTTP error! status: ${response.status}`);
+            const messageBubble = document.createElement('div');
+            messageBubble.classList.add('p-3', 'rounded-lg', 'max-w-full', 'lg:max-w-4xl', 'shadow-md');
+            
+            if (sender === 'user') {
+                avatarDiv.classList.add('bg-blue-600', 'text-white');
+                messageBubble.classList.add('bg-blue-700', 'text-white', 'ml-auto'); 
+                messageDiv.classList.add('justify-end'); 
+                messageBubble.textContent = message; 
+                messageBubble.dataset.originalPrompt = message; // Simpan prompt asli pengguna
+            } else { // sender === 'ai'
+                avatarDiv.classList.add('bg-emerald-600', 'text-white');
+                avatarDiv.textContent = 'AI'; 
+                messageBubble.classList.add('bg-gray-700', 'text-gray-200', 'message-bubble'); /* Tambah kelas message-bubble */
+                messageDiv.dataset.originalUserPrompt = originalUserPrompt; // Simpan prompt pengguna yang memicu AI ini
+
+                if (isTyping) {
+                    messageBubble.innerHTML = '<div class="animate-pulse">Berfikir...</div>'; 
+                    // Store the reference to this thinking message element
+                    thinkingMessageElement = messageDiv; 
+                } else {
+                    messageBubble.innerHTML = converter.makeHtml(message); 
+                    // Tambahkan tombol aksi setelah pesan selesai diketik
+                    const actionsDiv = document.createElement('div');
+                    actionsDiv.classList.add('ai-actions', 'mt-2', 'flex', 'space-x-2', 'items-center', 'text-gray-400');
+                    actionsDiv.innerHTML = `
+                        <button class="like-btn">
+                            <svg fill="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path d="M7 10.5C7 9.67157 7.67157 9 8.5 9H11.236L10.352 5.29749C10.158 4.50284 10.4237 3.63934 11.0538 3.10915C11.6838 2.57895 12.6395 2.56933 13.2773 3.09071L19.0475 7.82869C19.6645 8.33748 20 9.14175 20 9.99849V19C20 20.1046 19.1046 21 18 21H10C8.89543 21 8 20.1046 8 19V10H7V10.5ZM18 19V9.99849L12.236 5.26051L12.6862 7.07062C12.8687 7.8596 12.603 8.7231 11.9729 9.25329C11.3429 9.78349 10.3871 9.79311 9.74934 9.27173L8.5 8.24357V19H18ZM4 9H6V21H4C2.89543 21 2 20.1046 2 19V10C2 9.44772 2.44772 9 3 9L4 9Z"></path></svg>
+                        </button>
+                        <button class="dislike-btn">
+                            <svg fill="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path d="M17 13.5C17 14.3284 16.3284 15 15.5 15H12.764L13.648 18.7025C13.842 19.4972 13.5763 20.3607 12.9462 20.8908C12.3162 21.421 11.3605 21.4307 10.7227 20.9093L4.95251 16.1713C4.33549 15.6625 4 14.8583 4 14.0015V5C4 3.89543 4.89543 3 6 3H14C15.1046 3 16 3.89543 16 5V14H17V13.5ZM6 5V14.0015L11.764 18.7395L11.3138 16.9294C11.1313 16.1404 11.397 15.2769 12.0271 14.7467C12.6571 14.2165 13.6129 14.2069 14.2507 14.7283L15.5 15.7564V5H6ZM20 3H18V15H20C21.1046 15 22 14.1046 22 13V4C22 3.44772 21.5523 3 21 3L20 3Z"></path></svg>
+                        </button>
+                        <button class="copy-btn">
+                            <svg fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2"></path></svg>
+                        </button>
+                        <button class="regenerate-btn">
+                            <svg fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004 14m0 0v5h5M20 20v-5h-.582m-15.356-2A8.001 8.001 0 0120 10m0 0v-5h-5"></path></svg>
+                        </button>
+                    `;
+                    messageDiv.appendChild(actionsDiv);
                 }
-                const data = await response.json();
-                displayVideos(data.items);
-            } catch (error) {
-                console.error('Error fetching videos:', error);
-                showMessage(`Gagal memuat video: ${error.message}. Pastikan kunci API Anda benar dan kuota cukup.`, "Kesalahan Jaringan/API");
-            } finally {
-                loadingSpinner.style.display = 'none'; // Hide spinner
+            }
+
+            messageDiv.appendChild(avatarDiv);
+            messageDiv.appendChild(messageBubble);
+            chatHistoryContainer.appendChild(messageDiv);
+
+            chatHistoryContainer.scrollTop = chatHistoryContainer.scrollHeight;
+            return messageBubble; 
+        }
+
+        // Fungsi untuk menghentikan efek mengetik
+        function stopTyping() {
+            clearTimeout(typingTimeout);
+            // Hapus atau reset thinking message jika masih ada
+            if (thinkingMessageElement) {
+                thinkingMessageElement.remove();
+                thinkingMessageElement = null;
             }
         }
 
-        // Function to display videos in the results area
-        function displayVideos(videos) {
-            videoResults.innerHTML = ''; // Clear previous results
-            if (videos.length === 0) {
-                videoResults.innerHTML = '<p class="text-center text-gray-400 col-span-full text-lg">Tidak ada video yang ditemukan.</p>';
+        // Fungsi untuk mengembalikan UI ke keadaan siap input
+        function resetUI() {
+            stopTyping(); // Pastikan typing berhenti
+            if (currentAbortController) {
+                currentAbortController.abort(); // Batalkan permintaan API yang mungkin tertunda
+                currentAbortController = null;
+            }
+            generateButton.classList.remove('hidden'); // Tampilkan tombol kirim
+            stopButton.classList.add('hidden'); // Sembunyikan tombol stop
+            ideaInput.value = ''; // Bersihkan input
+            ideaInput.style.height = 'auto'; // Reset tinggi input
+            updateActionButtonsVisibility(); // Pastikan tombol aksi terbaru terlihat
+        }
+
+        // Fungsi untuk mensimulasikan efek mengetik
+        function typeMessage(fullMessage, targetBubble, originalUserPrompt) {
+            let charIndex = 0;
+            const typingSpeed = 15; 
+
+            // Hapus atau reset innerHTML saat memulai pengetikan
+            targetBubble.innerHTML = ''; 
+
+            function typeChar() {
+                if (charIndex < fullMessage.length) {
+                    targetBubble.textContent += fullMessage.charAt(charIndex);
+                    chatHistoryContainer.scrollTop = chatHistoryContainer.scrollHeight; 
+                    charIndex++;
+                    typingTimeout = setTimeout(typeChar, typingSpeed);
+                } else {
+                    // Setelah selesai mengetik, render sebagai Markdown
+                    targetBubble.innerHTML = converter.makeHtml(fullMessage);
+                    // Panggil fungsi untuk menambahkan dan menampilkan tombol aksi
+                    addActionsToAIMessage(targetBubble.parentNode, fullMessage, originalUserPrompt);
+                    resetUI(); // Reset UI setelah selesai mengetik
+                }
+            }
+            typeChar();
+        }
+
+        // Fungsi untuk menambahkan tombol aksi ke pesan AI
+        function addActionsToAIMessage(messageDiv, aiResponseText, originalUserPrompt) {
+            const actionsDiv = document.createElement('div');
+            actionsDiv.classList.add('ai-actions', 'mt-2', 'flex', 'space-x-2', 'items-center', 'text-gray-400', 'visible');
+            actionsDiv.innerHTML = `
+                <button class="like-btn">
+                    <svg fill="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path d="M7 10.5C7 9.67157 7.67157 9 8.5 9H11.236L10.352 5.29749C10.158 4.50284 10.4237 3.63934 11.0538 3.10915C11.6838 2.57895 12.6395 2.56933 13.2773 3.09071L19.0475 7.82869C19.6645 8.33748 20 9.14175 20 9.99849V19C20 20.1046 19.1046 21 18 21H10C8.89543 21 8 20.1046 8 19V10H7V10.5ZM18 19V9.99849L12.236 5.26051L12.6862 7.07062C12.8687 7.8596 12.603 8.7231 11.9729 9.25329C11.3429 9.78349 10.3871 9.79311 9.74934 9.27173L8.5 8.24357V19H18ZM4 9H6V21H4C2.89543 21 2 20.1046 2 19V10C2 9.44772 2.44772 9 3 9L4 9Z"></path></svg>
+                </button>
+                <button class="dislike-btn">
+                    <svg fill="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path d="M17 13.5C17 14.3284 16.3284 15 15.5 15H12.764L13.648 18.7025C13.842 19.4972 13.5763 20.3607 12.9462 20.8908C12.3162 21.421 11.3605 21.4307 10.7227 20.9093L4.95251 16.1713C4.33549 15.6625 4 14.8583 4 14.0015V5C4 3.89543 4.89543 3 6 3H14C15.1046 3 16 3.89543 16 5V14H17V13.5ZM6 5V14.0015L11.764 18.7395L11.3138 16.9294C11.1313 16.1404 11.397 15.2769 12.0271 14.7467C12.6571 14.2165 13.6129 14.2069 14.2507 14.7283L15.5 15.7564V5H6ZM20 3H18V15H20C21.1046 15 22 14.1046 22 13V4C22 3.44772 21.5523 3 21 3L20 3Z"></path></svg>
+                </button>
+                <button class="copy-btn">
+                    <svg fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2"></path></svg>
+                </button>
+                <button class="regenerate-btn">
+                    <svg fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004 14m0 0v5h5M20 20v-5h-.582m-15.356-2A8.001 8.001 0 0120 10m0 0v-5h-5"></path></svg>
+                </button>
+            `;
+            messageDiv.appendChild(actionsDiv);
+
+            // Tambahkan event listeners untuk tombol-tombol
+            actionsDiv.querySelector('.like-btn').addEventListener('click', () => {
+                console.log('Liked AI response:', aiResponseText.substring(0, 50) + '...');
+                // Implementasi feedback visual (misal: ubah warna ikon)
+            });
+            actionsDiv.querySelector('.dislike-btn').addEventListener('click', () => {
+                console.log('Disliked AI response:', aiResponseText.substring(0, 50) + '...');
+                // Implementasi feedback visual
+            });
+            actionsDiv.querySelector('.copy-btn').addEventListener('click', () => {
+                copyToClipboard(aiResponseText);
+            });
+            
+            const regenerateBtn = actionsDiv.querySelector('.regenerate-btn');
+            // Pastikan tombol regenerate hanya ada di pesan AI terakhir
+            // Cek apakah messageDiv adalah anak terakhir dari chatHistoryContainer, dan apakah itu elemen HTMLElement
+            if (chatHistoryContainer.lastChild instanceof HTMLElement && messageDiv === chatHistoryContainer.lastChild) {
+                 regenerateBtn.addEventListener('click', () => {
+                    handleRegenerate(messageDiv, originalUserPrompt);
+                });
+            } else {
+                regenerateBtn.style.display = 'none'; // Sembunyikan tombol regenerate jika bukan pesan terakhir
+            }
+
+            // Atur visibilitas setelah ditambahkan
+            setTimeout(() => {
+                actionsDiv.classList.add('visible');
+            }, 50); // Delay kecil agar transisi terlihat
+        }
+
+        // Fungsi untuk menyalin teks ke clipboard
+        function copyToClipboard(text) {
+            const textarea = document.createElement('textarea');
+            textarea.value = text;
+            textarea.style.position = 'fixed'; // Agar tidak mengganggu layout
+            textarea.style.opacity = 0; // Sembunyikan textarea
+            document.body.appendChild(textarea);
+            textarea.focus();
+            textarea.select();
+            try {
+                document.execCommand('copy');
+                console.log('Teks berhasil disalin!');
+                // Anda bisa menambahkan notifikasi visual di UI
+            } catch (err) {
+                console.error('Gagal menyalin teks:', err);
+            } finally {
+                document.body.removeChild(textarea);
+            }
+        }
+
+        // Fungsi untuk menangani regenerasi jawaban
+        async function handleRegenerate(aiMessageDiv, originalUserPrompt) {
+            // Hapus pesan AI yang sedang diregenerate dari DOM dan chatHistory
+            // Pastikan aiMessageDiv adalah HTMLElement sebelum memanggil .remove()
+            if (aiMessageDiv instanceof HTMLElement) {
+                aiMessageDiv.remove();
+                chatHistory.pop(); // Hapus respons AI terakhir
+            }
+
+
+            // Temukan dan hapus pesan pengguna yang sesuai dari DOM dan chatHistory
+            // Ini akan bergantung pada bagaimana Anda melacak hubungan user-AI message.
+            // Untuk kesederhanaan, kita asumsikan pesan user sebelumnya adalah yang kedua terakhir di chatHistoryContainer
+            const lastUserMessageDiv = chatHistoryContainer.lastChild;
+            if (lastUserMessageDiv instanceof HTMLElement && lastUserMessageDiv.querySelector('.bg-blue-700')) { // Pastikan itu pesan user
+                lastUserMessageDiv.remove();
+                chatHistory.pop(); // Hapus pesan user terakhir
+                const userPrompt = lastUserMessageDiv.querySelector('.p-3').textContent; // Ambil teks asli dari pesan user
+
+                // Sembunyikan tombol kirim, tampilkan tombol stop
+                generateButton.classList.add('hidden');
+                stopButton.classList.remove('hidden');
+
+                currentAbortController = new AbortController();
+                addMessageToChat('ai', '', true); // Tambahkan "Berfikir..."
+
+                const aiResponse = await getFidaiResponse(userPrompt, currentAbortController.signal);
+
+                if (thinkingMessageElement) {
+                    thinkingMessageElement.remove();
+                    thinkingMessageElement = null;
+                }
+                typeMessage(aiResponse, addMessageToChat('ai', '', false, userPrompt)); // Lewatkan userPrompt asli
+            } else {
+                console.error("Tidak dapat menemukan pesan pengguna sebelumnya untuk meregenerasi.");
+                resetUI();
+            }
+        }
+
+        // --- Logika "AI" yang disiapkan untuk Gemini API ---
+        let chatHistory = [];
+
+        // Inisialisasi pesan sambutan AI
+        function initializeChat() {
+            resetUI(); // Reset UI saat obrolan baru dimulai
+            chatHistoryContainer.innerHTML = ''; 
+            chatHistory = []; 
+            const initialPrompt = "Halo! Saya Fidai, asisten AI Anda, yang dibuat dengan bangga oleh fidseen, seorang developer paling ganteng dari Komunitas Insieme, bagian dari angkatan santri Pondok Pesantren At-Taufiq. Saya ahli dalam menghasilkan ide, argumen, dan saran. Apa yang bisa saya bantu hari ini?";
+            typeMessage(initialPrompt, addMessageToChat('ai', '', false)); 
+        }
+
+        // Panggil inisialisasi saat pertama kali dimuat
+        initializeChat();
+
+        // Fungsi utama untuk mendapatkan respons dari AI (akan memanggil Gemini API)
+        async function getFidaiResponse(prompt, signal) {
+            // Kita akan tambahkan instruksi Markdown di sini sebelum mengirim ke Gemini API
+            const formattedPrompt = `${prompt}\n\nMohon berikan jawaban Anda dalam format Markdown, termasuk penggunaan judul (\`###\`), daftar (\`- item\`), teks tebal (\`**tebal**\`), dan garis horizontal (\`---\`) untuk memisahkan bagian-bagian respons jika relevan.`;
+
+            chatHistory.push({ role: "user", parts: [{ text: formattedPrompt }] });
+
+            const payload = { contents: chatHistory };
+            const apiKey = ""; 
+            const apiUrl = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash-preview-05-20:generateContent?key=${apiKey}`;
+
+            let responseText = "Maaf, terjadi kesalahan saat mencoba mendapatkan respons dari AI. Mohon coba lagi.";
+            let retries = 0;
+            const maxRetries = 3;
+            const initialDelay = 1000; 
+
+            while (retries < maxRetries) {
+                try {
+                    const response = await fetch(apiUrl, {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify(payload),
+                        signal: signal // Meneruskan sinyal AbortController
+                    });
+
+                    if (!response.ok) {
+                        throw new Error(`HTTP error! status: ${response.status}`);
+                    }
+
+                    const result = await response.json();
+
+                    if (result.candidates && result.candidates.length > 0 &&
+                        result.candidates[0].content && result.candidates[0].content.parts &&
+                        result.candidates[0].content.parts.length > 0) {
+                        responseText = result.candidates[0].content.parts[0].text;
+                        break; 
+                    } else {
+                        throw new Error("Unexpected API response structure.");
+                    }
+                } catch (error) {
+                    // Cek jika error adalah karena pembatalan
+                    if (error.name === 'AbortError') {
+                        console.log('Fetch aborted by user.');
+                        responseText = "Respons AI dihentikan."; // Pesan jika dibatalkan
+                        break; // Keluar dari loop jika dibatalkan
+                    }
+                    console.error("Error calling Gemini API:", error);
+                    retries++;
+                    if (retries < maxRetries) {
+                        const delay = initialDelay * Math.pow(2, retries - 1); 
+                        await new Promise(res => setTimeout(res, delay));
+                        console.log(`Retrying API call... (${retries}/${maxRetries})`);
+                    }
+                }
+            }
+
+            chatHistory.push({ role: "model", parts: [{ text: responseText }] });
+            return responseText;
+        }
+
+        // Event listener untuk tombol "Hasilkan Ide"
+        generateButton.addEventListener('click', async () => {
+            const input = ideaInput.value;
+            if (input.trim() === "") {
                 return;
             }
 
-            videos.forEach(video => {
-                const videoId = video.id.videoId || video.id; // Handle both search results and popular videos
-                const snippet = video.snippet;
-                if (!snippet) return; // Skip if snippet is missing
+            // Sembunyikan tombol aksi dari pesan AI sebelumnya
+            hideAllActionButtons();
 
-                const videoCard = document.createElement('div');
-                videoCard.className = 'bg-gray-800 rounded-xl shadow-lg overflow-hidden video-thumbnail';
-                videoCard.innerHTML = `
-                    <img src="${snippet.thumbnails.medium.url}" alt="${snippet.title}" class="w-full h-48 object-cover">
-                    <div class="p-4">
-                        <h3 class="text-lg font-semibold text-white mb-2 line-clamp-2">${snippet.title}</h3>
-                        <p class="text-sm text-gray-400 line-clamp-1">${snippet.channelTitle}</p>
-                    </div>
-                `;
-                videoCard.addEventListener('click', () => playVideo(videoId, snippet.title, snippet.description));
-                videoResults.appendChild(videoCard);
+            // Tambahkan pesan pengguna ke chat history
+            addMessageToChat('user', input);
+
+            // Sembunyikan tombol kirim, tampilkan tombol stop
+            generateButton.classList.add('hidden');
+            stopButton.classList.remove('hidden');
+
+            // Inisialisasi AbortController baru
+            currentAbortController = new AbortController();
+
+            // Tambahkan pesan "Berfikir..." dan dapatkan referensinya
+            addMessageToChat('ai', '', true); 
+            
+            // Panggil fungsi "AI" (memanggil Gemini API) dengan sinyal pembatalan
+            const aiResponse = await getFidaiResponse(input, currentAbortController.signal);
+
+            // Hapus pesan "Berfikir..."
+            if (thinkingMessageElement) {
+                thinkingMessageElement.remove();
+                thinkingMessageElement = null;
+            }
+
+            // Tampilkan respon AI dengan efek mengetik
+            typeMessage(aiResponse, addMessageToChat('ai', '', false, input)); // Lewatkan input asli pengguna
+            // resetUI() akan dipanggil setelah typeMessage selesai
+
+            // Reset controller setelah selesai atau dibatalkan
+            currentAbortController = null;
+        });
+
+        // Event listener untuk tombol "Stop"
+        stopButton.addEventListener('click', () => {
+            if (currentAbortController) {
+                currentAbortController.abort(); // Batalkan permintaan API
+            }
+            stopTyping(); // Hentikan efek mengetik
+            // Langsung tampilkan tombol kirim dan sembunyikan tombol stop
+            generateButton.classList.remove('hidden');
+            stopButton.classList.add('hidden');
+            // Jika ada pesan yang sedang diketik, tambahkan pesan "dihentikan" atau biarkan apa adanya
+            // Untuk kesederhanaan, kita biarkan saja saat ini.
+            updateActionButtonsVisibility(); // Pastikan tombol aksi terbaru terlihat
+        });
+
+        // Mengizinkan kirim dengan Enter, dan Shift+Enter untuk newline
+        ideaInput.addEventListener('keydown', (event) => {
+            if (event.key === 'Enter' && !event.shiftKey) {
+                event.preventDefault(); 
+                generateButton.click(); 
+            }
+        });
+
+        // Fungsi untuk menyembunyikan semua tombol aksi pesan AI
+        function hideAllActionButtons() {
+            const allActions = chatHistoryContainer.querySelectorAll('.ai-actions');
+            allActions.forEach(div => {
+                div.classList.remove('visible');
             });
         }
 
-        // Variable to store the currently playing video ID for sharing
-        let currentPlayingVideoId = null;
-
-        // Function to play a selected video
-        function playVideo(videoId, title, description) {
-            youtubePlayer.src = `https://www.youtube.com/embed/${videoId}?autoplay=1`;
-            videoTitle.textContent = title;
-            videoDescription.textContent = description;
-            videoPlayerSection.classList.remove('hidden'); // Show the player section
-            summarizeButton.dataset.videoTitle = title; // Store title for summary
-            summarizeButton.dataset.videoDescription = description; // Store description for summary
-            currentPlayingVideoId = videoId; // Store video ID for sharing
-            window.scrollTo({ top: 0, behavior: 'smooth' }); // Scroll to top to see player
-        }
-
-        // Function to manage active navigation button styling
-        function setActiveNavButton(activeButton) {
-            homeButton.classList.remove('active');
-            popularButton.classList.remove('active');
-            shortsButton.classList.remove('active'); // Remove active from Shorts button
-            activeButton.classList.add('active');
-        }
-
-        // Event listener for search button click
-        searchButton.addEventListener('click', () => {
-            const query = searchInput.value.trim();
-            if (query) {
-                fetchVideos(query);
-                // No button active for custom search
-                homeButton.classList.remove('active');
-                popularButton.classList.remove('active');
-                shortsButton.classList.remove('active'); // Ensure Shorts is not active
-            } else {
-                showMessage("Silakan masukkan kata kunci pencarian.", "Peringatan");
-            }
-        });
-
-        // Event listener for Enter key in search input
-        searchInput.addEventListener('keypress', (event) => {
-            if (event.key === 'Enter') {
-                searchButton.click();
-            }
-        });
-
-        // Event listener for Home button
-        homeButton.addEventListener('click', () => {
-            fetchVideos('trending'); // 'trending' is essentially 'popular'
-            setActiveNavButton(homeButton);
-            searchInput.value = ''; // Clear search input
-        });
-
-        // Event listener for Popular button
-        popularButton.addEventListener('click', () => {
-            fetchVideos('trending'); // 'trending' is essentially 'popular'
-            setActiveNavButton(popularButton);
-            searchInput.value = ''; // Clear search input
-        });
-
-        // Event listener for Shorts button
-        shortsButton.addEventListener('click', () => {
-            fetchVideos('shorts'); // Fetch videos with duration 'short'
-            setActiveNavButton(shortsButton);
-            searchInput.value = ''; // Clear search input
-        });
-
-        // --- Gemini API Integration: Summarize Video ---
-        summarizeButton.addEventListener('click', async () => {
-            const title = summarizeButton.dataset.videoTitle;
-            const description = summarizeButton.dataset.videoDescription;
-
-            if (!title && !description) {
-                showMessage("Tidak ada informasi video untuk diringkas.", "Kesalahan Ringkasan");
-                return;
-            }
-
-            summarizeButton.disabled = true; // Disable button during loading
-            summaryLoadingSpinner.classList.remove('hidden'); // Show spinner
-
-            try {
-                let chatHistory = [];
-                const prompt = `Ringkaslah video ini berdasarkan judul dan deskripsi yang diberikan. Berikan ringkasan yang singkat dan padat dalam bahasa Indonesia.
-Judul: ${title}
-Deskripsi: ${description}`;
-
-                chatHistory.push({ role: "user", parts: [{ text: prompt }] });
-                const payload = { contents: chatHistory };
-                const apiKey = "AIzaSyAGSf3OGXLmFszYnLZA9CzzCzHSlpjl7mU"; // Canvas akan menyediakan API key di runtime
-                const apiUrl = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent?key=${apiKey}`;
-
-                const response = await fetch(apiUrl, {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify(payload)
-                });
-
-                const result = await response.json();
-
-                if (result.candidates && result.candidates.length > 0 &&
-                    result.candidates[0].content && result.candidates[0].content.parts &&
-                    result.candidates[0].content.parts.length > 0) {
-                    const summaryText = result.candidates[0].content.parts[0].text;
-                    showMessage(summaryText, "Ringkasan Video ✨");
-                } else {
-                    showMessage("Gagal mendapatkan ringkasan dari AI. Coba lagi.", "Kesalahan AI");
-                    console.error('Unexpected Gemini API response structure:', result);
+        // Fungsi untuk menampilkan tombol aksi hanya pada pesan AI terakhir
+        function updateActionButtonsVisibility() {
+            hideAllActionButtons(); // Sembunyikan semua dulu
+            const lastChild = chatHistoryContainer.lastChild;
+            // Pastikan lastChild adalah elemen dan bukan text node
+            if (lastChild instanceof HTMLElement && lastChild.querySelector('.message-bubble')) { 
+                const actionsDiv = lastChild.querySelector('.ai-actions');
+                if (actionsDiv) {
+                    actionsDiv.classList.add('visible');
+                    // Pastikan tombol regenerate hanya ada di pesan AI terakhir
+                    const regenerateBtn = actionsDiv.querySelector('.regenerate-btn');
+                    // Periksa apakah regenerateBtn ada dan lastChild adalah pesan AI
+                    if (regenerateBtn && lastChild.querySelector('.message-bubble').parentElement === lastChild) {
+                        regenerateBtn.style.display = 'inline-flex'; // Tampilkan tombol regenerate
+                    } else if (regenerateBtn) {
+                        regenerateBtn.style.display = 'none'; // Sembunyikan jika bukan pesan AI terakhir
+                    }
                 }
-            } catch (error) {
-                console.error('Error calling Gemini API:', error);
-                showMessage(`Terjadi kesalahan saat menghubungi AI: ${error.message}`, "Kesalahan AI");
-            } finally {
-                summarizeButton.disabled = false; // Re-enable button
-                summaryLoadingSpinner.classList.add('hidden'); // Hide spinner
             }
-        });
-        // --- End Gemini API Integration ---
+        }
 
-        // --- Share Link Feature ---
-        shareButton.addEventListener('click', async () => {
-            if (!currentPlayingVideoId) {
-                showMessage("Tidak ada video yang sedang diputar untuk dibagikan.", "Peringatan");
+
+        // --- Fungsionalitas Tombol Sidebar ---
+        function showSection(sectionId) {
+            chatInterface.classList.add('hidden');
+            chatInputArea.classList.add('hidden');
+            fidtubeSection.classList.add('hidden');
+            settingsSection.classList.add('hidden'); 
+
+            if (sectionId === 'chat') {
+                chatInterface.classList.remove('hidden');
+                chatInputArea.classList.remove('hidden');
+                updateActionButtonsVisibility(); 
+            } else if (sectionId === 'fidtube') {
+                fidtubeSection.classList.remove('hidden');
+            } else if (sectionId === 'settings') { 
+                settingsSection.classList.remove('hidden');
+            }
+        }
+
+        newChatButton.addEventListener('click', (event) => {
+            event.preventDefault();
+            initializeChat(); 
+            showSection('chat'); 
+        });
+
+        generateIdeaLink.addEventListener('click', (event) => {
+            event.preventDefault();
+            showSection('chat');
+            ideaInput.focus();
+        });
+
+        fidtubeLink.addEventListener('click', (event) => {
+            event.preventDefault();
+            showSection('fidtube');
+            currentFidtubeFilter = 'all'; 
+            updateFidtubeFilterButtons(); 
+            searchYouTubeVideos('', currentFidtubeFilter); 
+        });
+
+        settingsLink.addEventListener('click', (event) => { 
+            event.preventDefault();
+            showSection('settings');
+            loadSettings(); // Memuat pengaturan saat halaman pengaturan dibuka
+        });
+
+
+        // --- Fungsionalitas Fidtube (YouTube Integration) ---
+
+        const YOUTUBE_API_KEY = "AIzaSyDVlgvK3tAcb0Gl3bL9jE8FipmNEDlEr0w"; 
+
+        let player; 
+        let currentFidtubeFilter = 'all'; 
+
+        function onYouTubeIframeAPIReady() {
+            // Player akan dibuat saat video pertama dipilih
+        }
+
+        function updateFidtubeFilterButtons() {
+            if (currentFidtubeFilter === 'all') {
+                fidtubeFilterHome.classList.add('bg-emerald-600', 'text-white');
+                fidtubeFilterHome.classList.remove('bg-gray-700', 'text-gray-300');
+                fidtubeFilterShorts.classList.add('bg-gray-700', 'text-gray-300');
+                fidtubeFilterShorts.classList.remove('bg-emerald-600', 'text-white');
+            } else { 
+                fidtubeFilterShorts.classList.add('bg-emerald-600', 'text-white');
+                fidtubeFilterShorts.classList.remove('bg-gray-700', 'text-gray-300');
+                fidtubeFilterHome.classList.add('bg-gray-700', 'text-gray-300');
+                fidtubeFilterHome.classList.remove('bg-emerald-600', 'text-white');
+            }
+        }
+
+        function displayYouTubeResults(items) {
+            youtubeResults.innerHTML = ''; 
+            fidtubeError.classList.add('hidden'); 
+
+            if (items.length === 0) {
+                youtubeResults.innerHTML = '<p class="text-gray-400 text-center col-span-full">Tidak ada video ditemukan.</p>';
                 return;
             }
 
-            const videoUrl = `https://www.youtube.com/watch?v=${currentPlayingVideoId}`;
+            items.forEach(item => {
+                let videoId;
+                if (item.id && typeof item.id === 'object' && item.id.videoId) {
+                    videoId = item.id.videoId; 
+                } else if (item.id && typeof item.id === 'string') {
+                    videoId = item.id; 
+                } else {
+                    console.warn("Could not determine video ID for item:", item);
+                    return; 
+                }
+                
+                const title = item.snippet.title;
+                const thumbnailUrl = item.snippet.thumbnails.medium.url;
+                const channelTitle = item.snippet.channelTitle;
+
+                const videoCard = document.createElement('div');
+                videoCard.classList.add('bg-gray-700', 'rounded-lg', 'overflow-hidden', 'shadow-lg', 'cursor-pointer', 'hover:bg-gray-600', 'transition-colors');
+                videoCard.innerHTML = `
+                    <img src="${thumbnailUrl}" alt="${title}" class="w-full h-40 object-cover">
+                    <div class="p-3">
+                        <h4 class="font-semibold text-gray-100 text-sm mb-1 line-clamp-2">${title}</h4>
+                        <p class="text-gray-400 text-xs">${channelTitle}</p>
+                    </div>
+                `;
+                videoCard.addEventListener('click', () => playYouTubeVideo(videoId));
+                youtubeResults.appendChild(videoCard);
+            });
+        }
+
+        async function searchYouTubeVideos(query, videoType = 'all') {
+            youtubeResults.innerHTML = '';
+            youtubePlayerDiv.classList.add('hidden'); 
+            fidtubeLoading.classList.remove('hidden'); 
+            fidtubeError.classList.add('hidden'); 
+
+            let searchUrl = '';
+            let isInitialHomeLoad = (query.trim() === "" && videoType === 'all');
+
+            if (isInitialHomeLoad) {
+                searchUrl = `https://www.googleapis.com/youtube/v3/videos?part=snippet,contentDetails,statistics&chart=mostPopular&regionCode=ID&maxResults=9&key=${YOUTUBE_API_KEY}`;
+            } else {
+                searchUrl = `https://www.googleapis.com/youtube/v3/search?part=snippet&q=${encodeURIComponent(query)}&type=video&maxResults=9&key=${YOUTUBE_API_KEY}`;
+                if (videoType === 'short') {
+                    searchUrl += '&videoDuration=short';
+                }
+            }
 
             try {
-                // Always use document.execCommand('copy') for better compatibility in iframes
-                const tempInput = document.createElement('textarea');
-                tempInput.value = videoUrl;
-                document.body.appendChild(tempInput);
-                tempInput.select();
-                document.execCommand('copy');
-                document.body.removeChild(tempInput);
-                showMessage("Tautan video telah disalin ke clipboard Anda!", "Tautan Disalin");
-            } catch (err) {
-                console.error('Gagal menyalin tautan:', err);
-                showMessage("Gagal menyalin tautan ke clipboard. Anda dapat menyalinnya secara manual: " + videoUrl, "Kesalahan Penyalinan");
+                const response = await fetch(searchUrl);
+                if (!response.ok) {
+                    throw new Error(`HTTP error! Status: ${response.status}`);
+                }
+                const data = await response.json();
+                displayYouTubeResults(data.items);
+            } catch (error) {
+                console.error("Error fetching YouTube videos:", error);
+                fidtubeError.classList.remove('hidden');
+                fidtubeError.textContent = 'Terjadi kesalahan saat mencari video: ' + error.message;
+            } finally {
+                fidtubeLoading.classList.add('hidden'); 
+            }
+        }
+
+        function playYouTubeVideo(videoId) {
+            youtubePlayerDiv.classList.remove('hidden');
+            youtubeResults.innerHTML = ''; 
+
+            if (!player) {
+                player = new YT.Player('youtubePlayer', {
+                    videoId: videoId,
+                    playerVars: {
+                        'autoplay': 1,
+                        'controls': 1
+                    }
+                });
+            } else {
+                player.loadVideoById(videoId);
+            }
+        }
+
+        fidtubeSearchButton.addEventListener('click', () => {
+            searchYouTubeVideos(fidtubeSearchInput.value, currentFidtubeFilter);
+        });
+
+        fidtubeSearchInput.addEventListener('keydown', (event) => {
+            if (event.key === 'Enter') {
+                event.preventDefault();
+                searchYouTubeVideos(fidtubeSearchInput.value, currentFidtubeFilter);
             }
         });
-        // --- End Share Link Feature ---
 
-        // Initial load: fetch trending videos (which are popular videos)
-        document.addEventListener('DOMContentLoaded', () => {
-            fetchVideos('trending');
-            setActiveNavButton(homeButton); // Set Home button as active initially
+        fidtubeFilterHome.addEventListener('click', () => {
+            currentFidtubeFilter = 'all';
+            updateFidtubeFilterButtons();
+            searchYouTubeVideos(fidtubeSearchInput.value, currentFidtubeFilter);
         });
+
+        fidtubeFilterShorts.addEventListener('click', () => {
+            currentFidtubeFilter = 'short';
+            updateFidtubeFilterButtons();
+            searchYouTubeVideos(fidtubeSearchInput.value, currentFidtubeFilter);
+        });
+
+
+        // --- Fungsionalitas Pengaturan ---
+        function saveSettings() {
+            const settings = {
+                theme: themeSelect.value,
+                font: fontSelect.value,
+                fontSize: fontSizeSelect.value,
+                language: languageSelect.value 
+            };
+            localStorage.setItem('fidaiSettings', JSON.stringify(settings));
+            applySettings(settings);
+            console.log("Pengaturan disimpan:", settings);
+        }
+
+        function loadSettings() {
+            const savedSettings = localStorage.getItem('fidaiSettings');
+            if (savedSettings) {
+                const settings = JSON.parse(savedSettings);
+                themeSelect.value = settings.theme || 'dark';
+                fontSelect.value = settings.font || 'Inter';
+                fontSizeSelect.value = settings.fontSize || '1rem';
+                languageSelect.value = settings.language || 'id'; // Default Indonesia
+                applySettings(settings);
+            } else {
+                // Terapkan default jika belum ada pengaturan tersimpan
+                applySettings({
+                    theme: 'dark',
+                    font: 'Inter',
+                    fontSize: '1rem',
+                    language: 'id'
+                });
+            }
+        }
+
+        function applySettings(settings) {
+            // Terapkan Tema
+            if (settings.theme === 'light') {
+                document.body.classList.add('light-mode');
+            } else {
+                document.body.classList.remove('light-mode');
+            }
+
+            // Terapkan Font
+            document.body.style.fontFamily = `'${settings.font}', sans-serif`;
+
+            // Terapkan Ukuran Font
+            document.body.style.fontSize = settings.fontSize;
+
+            // Terapkan Bahasa (placeholder - membutuhkan i18n penuh)
+            console.log("Bahasa diatur ke:", settings.language, "(Implementasi i18n penuh diperlukan)");
+            // Di sini Anda akan mengimplementasikan logika untuk mengubah semua teks di UI
+            // berdasarkan pilihan bahasa. Ini jauh lebih kompleks dari sekadar mengubah nilai.
+        }
+
+        // Event listener untuk tombol "Terapkan Pengaturan Tampilan"
+        applyDisplaySettingsButton.addEventListener('click', saveSettings);
+
+        // Event listener untuk tombol "Reset Pengaturan AI"
+        resetAiSettingsButton.addEventListener('click', () => {
+            initializeChat(); // Ini akan membersihkan riwayat obrolan dan memulai percakapan baru
+            showSection('chat'); // Kembali ke antarmuka obrolan
+            console.log("Pengaturan AI direset (riwayat obrolan dibersihkan).");
+            // Anda bisa menambahkan notifikasi visual di UI bahwa pengaturan telah direset
+        });
+
+        // Muat pengaturan saat aplikasi pertama kali dimuat
+        document.addEventListener('DOMContentLoaded', loadSettings);
+
     </script>
 </body>
 </html>
